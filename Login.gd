@@ -37,7 +37,7 @@ func connect_to_server(_username : String, _password : String, _new_account : bo
 	username = _username
 	password = _password
 	new_account = _new_account
-	network.create_client(login_ip, port)
+	network.create_client(dedicated_server_ip, port)
 	set_custom_multiplayer(gateway_api)
 	custom_multiplayer.set_root_node(self)
 	custom_multiplayer.set_network_peer(network)

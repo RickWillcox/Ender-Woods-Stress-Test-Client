@@ -12,6 +12,7 @@ var latency_array : Array = []
 var latency : int = 0
 var delta_latency : int = 0
 var token : String
+var player_spawned_in_world = false
 
 #### replacing varaibles not on this script normally
 var player_inventory_client : Dictionary
@@ -19,6 +20,9 @@ var world_state_client : Dictionary
 var all_item_data_client : Dictionary
 var all_recipe_data_client : Dictionary
 var player_id_client : int
+var player_location : Vector2 = Vector2(250,250)
+var animation_vector : Vector2 = Vector2(0,0)
+var player_state : Dictionary
 
 func _physics_process(delta):
 	client_clock += int(delta*1000) + delta_latency
@@ -26,7 +30,7 @@ func _physics_process(delta):
 	decimal_collector += (delta * 1000) - int(delta * 1000)
 	if decimal_collector >= 1.00:
 		client_clock += 1
-		decimal_collector -= 1.0
+		decimal_collector -= 1.0		
 
 func connect_to_server():
 #	network.create_client(login_ip, port)
@@ -36,7 +40,7 @@ func connect_to_server():
 #	network.connect("connection_succeeded", self, "_on_connection_succeeded")
 #	PacketHandler.connect("remove_item", self, "remove_item_drop")
 
-	network.create_client(login_ip, port)
+	network.create_client(dedicated_server_ip, port)
 	get_tree().set_network_peer(network)
 	
 	network.connect("connection_succeeded", self, "_on_connection_succeeded")	
@@ -87,13 +91,15 @@ remote func return_token_verification_results(result, all_item_data, all_recipe_
 		print("would spawn player here")
 		all_item_data_client = all_item_data
 		all_recipe_data_client = all_recipe_data
+		$Timer.start()
 #		get_node("../SceneHandler/Map/GUI/CraftingMenu").prepare()
 #		get_node("../SceneHandler/Map/YSort/Player").set_physics_process(true)
 	else:
 		print("Login unsuccessful")
 
 		
-func send_player_state(player_state : Dictionary):
+func send_player_state():
+	player_state = {"A":animation_vector, "P":player_location, "T":client_clock}
 	rpc_unreliable_id(1, "receive_player_state", player_state)
 	
 remote func receive_world_state(world_state : Dictionary):
@@ -185,3 +191,7 @@ remote func receive_player_chat(player_id : int, username : String, text : Strin
 
 func craft_recipe(recipe_id : int):
 	rpc_id(1, "craft_recipe", recipe_id)
+
+
+func _on_Timer_timeout() -> void:
+	send_player_chat("HELLO WORLD")
